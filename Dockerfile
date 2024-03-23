@@ -4,7 +4,6 @@ LABEL author="cierpki"
 
 WORKDIR /opt/downloader
 
-COPY static/ ./static
 COPY templates/ ./templates
 COPY requirements.txt ./
 COPY server.py ./

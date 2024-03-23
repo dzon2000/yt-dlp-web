@@ -1,0 +1,39 @@
+name: "Create and publish Docker image for yt-dlp-web"
+
+on:
+  pull_request:
+    branches: 
+      - main
+    types: [closed]
+
+env:
+  REGISTRY: gitea.destroyer.home.net:80
+  # IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  Build:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event.pull_request.merged }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        # run: |
+        #   export CLONE_URL=$(echo "${{ gitea.server_url }}/${{ gitea.repository }}" | sed 's/gitea/${{ gitea.token }}@gitea/')
+        #   echo "$CLONE_URL"
+        #   git clone "$CLONE_URL" .
+        #   git checkout ${{ gitea.sha }}
+        # shell: sh
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: "http://${{ env.REGISTRY }}"
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: "${{ env.REGISTRY }}/${{ gitea.repository }}:1.0.${{ gitea.run_number }}"
