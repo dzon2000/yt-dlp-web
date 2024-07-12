@@ -8,7 +8,9 @@ COPY templates/ ./templates
 COPY requirements.txt ./
 COPY server.py ./
 
-RUN pip install -r requirements.txt 
+RUN apk update && \
+    apk add ffmpeg && \
+    pip install -r requirements.txt 
 
 EXPOSE 5000
 
