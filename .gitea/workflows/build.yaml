@@ -32,6 +32,7 @@ jobs:
           password: ${{ secrets.REGISTRY_TOKEN }}
 
       - name: Add version number
+        shell: sh
         run: |
           sed -i s/{{version}}/1.0.${{ gitea.run_number }}/g templates/index.htm
       
