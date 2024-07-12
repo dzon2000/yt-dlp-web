@@ -32,9 +32,3 @@ def download(file_name):
     response = send_from_directory(".", file_name)
     response.headers['Content-Disposition'] = 'attachment'
     return response
-
-
-if __name__ == "__main__":
-    URLS = ['https://x.com/Bairdric1/status/1764300268747800730?s=20']
-
-    download(URLS)
