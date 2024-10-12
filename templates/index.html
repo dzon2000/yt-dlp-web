@@ -39,7 +39,7 @@
             event.preventDefault();  // Prevent form from submitting the traditional way
             
             const formData = new FormData(event.target);  // Get form data (URL and file size)
-            
+            let downloadLocation;
             // Start download by sending a POST request to /initiate
             fetch('/initiate', { 
                 method: 'POST',
@@ -56,12 +56,18 @@
                     console.log("Getting progress...")
                     eventSource.onmessage = function(event) {
                         const progress = event.data;
+                        console.log(`Progress is ${progress}`)
                         if (!progress.startsWith("yolo")) {
                             document.getElementById('progress').textContent = parseFloat(progress).toFixed(1);
                             document.getElementById('progress-bar').value = progress;
                         } else {
-                            window.location.replace("/download/" + progress)
-                            eventSource.close();
+                            console.log("Getting download location...")
+                            document.getElementById('progress').textContent = 100.0
+                            document.getElementById('progress-bar').value = 100;
+                            downloadLocation = progress
+                            console.log("Download location is: "+downloadLocation)
+                            window.location.replace("/download/" + downloadLocation)
+                            eventSource.close();  // Close the connection once progress is complete
                         }
                     };
 
