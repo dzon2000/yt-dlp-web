@@ -29,54 +29,53 @@
         <div id="progress-container">
             <p>Progress: <span id="progress">0</span>%</p>
             <progress id="progress-bar" value="0" max="100"></progress>
-        </div>    
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script>
-        document.getElementById('download-form').addEventListener('submit', function(event) {
+        document.getElementById('download-form').addEventListener('submit', function (event) {
             event.preventDefault();  // Prevent form from submitting the traditional way
-            
+
             const formData = new FormData(event.target);  // Get form data (URL and file size)
-            let downloadLocation;
             // Start download by sending a POST request to /initiate
-            fetch('/initiate', { 
+            fetch('/initiate', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "Download started") {
-                    // Display the progress container
-                    document.getElementById('progress-container').style.display = 'block';
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "Download started") {
+                        // Display the progress container
+                        document.getElementById('progress-container').style.display = 'block';
 
-                    // Start listening for progress updates from /progress
-                    const eventSource = new EventSource('/progress');
-                    console.log("Getting progress...")
-                    eventSource.onmessage = function(event) {
-                        const progress = event.data;
-                        console.log(`Progress is ${progress}`)
-                        if (!progress.startsWith("yolo")) {
-                            document.getElementById('progress').textContent = parseFloat(progress).toFixed(1);
-                            document.getElementById('progress-bar').value = progress;
-                        } else {
-                            console.log("Getting download location...")
-                            document.getElementById('progress').textContent = 100.0
-                            document.getElementById('progress-bar').value = 100;
-                            downloadLocation = progress
-                            console.log("Download location is: "+downloadLocation)
-                            window.location.replace("/download/" + downloadLocation)
-                            eventSource.close();  // Close the connection once progress is complete
-                        }
-                    };
+                        // Start listening for progress updates from /progress
+                        const eventSource = new EventSource('/progress');
+                        console.log("Getting progress...")
+                        eventSource.onmessage = function (event) {
+                            const progress = event.data;
+                            console.log(`Progress is ${progress}`)
+                            if (!progress.startsWith("yolo")) {
+                                document.getElementById('progress').textContent = parseFloat(progress).toFixed(1);
+                                document.getElementById('progress-bar').value = progress;
+                            } else {
+                                console.log("Getting download location...")
+                                document.getElementById('progress').textContent = 100.0
+                                document.getElementById('progress-bar').value = 100;
+                                let downloadLocation = progress
+                                console.log("Download location is: " + downloadLocation)
+                                window.location.replace("/download/" + downloadLocation)
+                                eventSource.close();  // Close the connection once progress is complete
+                            }
+                        };
 
-                    eventSource.onerror = function() {
-                        console.log("An error occurred.");
-                        eventSource.close();
-                    };
-                }
-            });
+                        eventSource.onerror = function () {
+                            console.log("An error occurred.");
+                            eventSource.close();
+                        };
+                    }
+                });
         });
     </script>
 </body>
