@@ -34,12 +34,11 @@ def progress():
     def generate():
         while True:
             with progress_lock:
-                progress = progress_info["progress"]
-
-                yield f"data:{progress}\n\n"
                 if "file_name" in progress_info:
                     yield f"data:{progress_info['file_name']}\n\n"
                     break
+                progress = progress_info["progress"]
+                yield f"data:{progress}\n\n"
             time.sleep(0.5)
     return Response(generate(), content_type='text/event-stream')
 
