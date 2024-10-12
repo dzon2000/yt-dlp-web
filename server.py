@@ -9,11 +9,12 @@ progress_lock = threading.Lock()
 
 
 def report_progress(progress):
-    total_bytes = progress['total_bytes']
-    downloaded_bytes = progress.get('downloaded_bytes', 1)
-    percentage = (downloaded_bytes / total_bytes) * 100
-    with progress_lock:
-        progress_info["progress"] = percentage
+    if "total_bytes" in progress:
+        total_bytes = progress['total_bytes']
+        downloaded_bytes = progress.get('downloaded_bytes', 1)
+        percentage = (downloaded_bytes / total_bytes) * 100
+        with progress_lock:
+            progress_info["progress"] = percentage
 
 
 def download_with_ytdlp(url):
