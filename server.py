@@ -9,9 +9,9 @@ progress_lock = threading.Lock()
 
 
 def report_progress(progress):
-    if "total_bytes" in progress:
-        total_bytes = progress['total_bytes']
-        downloaded_bytes = progress.get('downloaded_bytes', 1)
+    total_bytes = progress.get("total_bytes") or progress.get("total_bytes_estimate")
+    if total_bytes:
+        downloaded_bytes = progress.get("downloaded_bytes", 1)
         percentage = (downloaded_bytes / total_bytes) * 100
         with progress_lock:
             progress_info["progress"] = percentage
