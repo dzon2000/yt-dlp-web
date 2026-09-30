@@ -42,6 +42,7 @@
                 </div>
                 <progress id="progress-bar" value="0" max="100">0%</progress>
             </div>
+            <p id="download-error" class="download-error" role="alert" hidden></p>
         </section>
 
         <footer>Downloads are processed on this server.</footer>
@@ -50,43 +51,57 @@
         document.getElementById('download-form').addEventListener('submit', function (event) {
             event.preventDefault();
 
+            const errorMessage = document.getElementById('download-error');
+            errorMessage.hidden = true;
+            errorMessage.textContent = '';
+
             const formData = new FormData(event.target);
             fetch('/initiate', {
                 method: 'POST',
                 body: formData
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "Download started") {
-                        document.getElementById('progress-container').hidden = false;
-
-                        const eventSource = new EventSource('/progress');
-                        eventSource.onmessage = function (event) {
-                            const progress = event.data;
-
-                            if (progress.startsWith('ERROR:')) {
-                                console.error(progress.slice(6));
-                                eventSource.close();
-                                return;
-                            }
-
-                            if (!progress.startsWith("yolo")) {
-                                const percentage = Number.parseFloat(progress);
-                                const safePercentage = Number.isFinite(percentage) ? percentage : 0;
-                                document.getElementById('progress').textContent = safePercentage.toFixed(1);
-                                document.getElementById('progress-bar').value = safePercentage;
-                            } else {
-                                document.getElementById('progress').textContent = '100.0';
-                                document.getElementById('progress-bar').value = 100;
-                                window.location.replace("/download/" + progress);
-                                eventSource.close();
-                            }
-                        };
-
-                        eventSource.onerror = function () {
-                            eventSource.close();
-                        };
+                .then(response => response.json().then(data => {
+                    if (!response.ok || data.status !== "Download started") {
+                        throw new Error(data.message || 'Could not start the download.');
                     }
+                    return data;
+                }))
+                .then(() => {
+                    document.getElementById('progress-container').hidden = false;
+
+                    const eventSource = new EventSource('/progress');
+                    eventSource.onmessage = function (event) {
+                        const progress = event.data;
+
+                        if (progress.startsWith('ERROR:')) {
+                            errorMessage.textContent = 'Download failed: ' + progress.slice(6).trim();
+                            errorMessage.hidden = false;
+                            eventSource.close();
+                            return;
+                        }
+
+                        if (!progress.startsWith("yolo")) {
+                            const percentage = Number.parseFloat(progress);
+                            const safePercentage = Number.isFinite(percentage) ? percentage : 0;
+                            document.getElementById('progress').textContent = safePercentage.toFixed(1);
+                            document.getElementById('progress-bar').value = safePercentage;
+                        } else {
+                            document.getElementById('progress').textContent = '100.0';
+                            document.getElementById('progress-bar').value = 100;
+                            window.location.replace("/download/" + progress);
+                            eventSource.close();
+                        }
+                    };
+
+                    eventSource.onerror = function () {
+                        errorMessage.textContent = 'Download progress connection was lost.';
+                        errorMessage.hidden = false;
+                        eventSource.close();
+                    };
+                })
+                .catch(error => {
+                    errorMessage.textContent = 'Download failed: ' + (error.message || 'Could not start the download.');
+                    errorMessage.hidden = false;
                 });
         });
     </script>
