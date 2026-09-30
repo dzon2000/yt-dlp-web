@@ -1,0 +1,14 @@
+services:
+  dlp:
+    image: dlp:${VERSION:-1.0.0}
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: dlp.destroyer.home.net
+    networks:
+      - pihole
+
+networks:
+  pihole:
+    external: true
