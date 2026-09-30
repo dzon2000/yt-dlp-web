@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     environment:
       VIRTUAL_HOST: dlp.destroyer.home.net
+    dns:
+      - ${PIHOLE_DNS:?Set PIHOLE_DNS to Pi-hole's stable IP}
     networks:
       - pihole
 
