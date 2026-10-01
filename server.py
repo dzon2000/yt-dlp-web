@@ -2,6 +2,7 @@ import os
 import threading
 import time
 from typing import Any
+from urllib.parse import urlparse
 
 from flask import Flask, Response, jsonify, render_template, request, send_from_directory
 from yt_dlp import YoutubeDL
@@ -9,6 +10,11 @@ from yt_dlp import YoutubeDL
 app = Flask(__name__)
 progress_lock = threading.Lock()
 progress_info: dict[str, Any] = {"progress": 0.0, "file_name": None, "error": None}
+
+
+def is_valid_video_url(value: str) -> bool:
+    parsed = urlparse(value)
+    return bool(parsed.scheme and parsed.netloc and parsed.hostname and parsed.scheme.lower() in {"http", "https"})
 
 
 def reset_progress() -> None:
@@ -72,7 +78,7 @@ def progress() -> Response:
 
 @app.route("/")
 def hello_world():
-    return render_template("index.html")
+    return render_template("index.html", version=os.environ.get("APP_VERSION", "dev"))
 
 
 @app.route("/initiate", methods=["POST"])
@@ -80,6 +86,8 @@ def initiate():
     url = request.form.get("videoURL", "").strip()
     if not url:
         return jsonify({"status": "error", "message": "Missing video URL."}), 400
+    if not is_valid_video_url(url):
+        return jsonify({"status": "error", "message": "Enter a valid http(s) video URL."}), 400
 
     reset_progress()
     thread = threading.Thread(target=download_with_ytdlp, args=(url,), daemon=True)
