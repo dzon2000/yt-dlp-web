@@ -4,7 +4,8 @@ yt_dlp exposed as a Web Service with HTML frontend
 
 ## Docker Compose
 
-Copy `.env.example` to `.env`, then build and start the service:
+Copy `.env.example` to `.env`, set `PIHOLE_DNS` to Pi-hole's stable IP address
+on the `pihole` network, then build and start the service:
 
 ```bash
 docker compose up -d --build
