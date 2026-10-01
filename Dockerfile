@@ -1,5 +1,8 @@
 FROM python:3.14-alpine
 
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
+
 LABEL author="cierpki"
 
 WORKDIR /opt/downloader
